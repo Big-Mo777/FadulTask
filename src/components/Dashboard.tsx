@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { CheckCircle2, Circle, Clock, TrendingUp, Sparkles } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, TrendingUp, Sparkles, Download, Smartphone } from 'lucide-react';
 import { useTasks } from '../contexts/TaskContext';
 
 const motivationalQuotes = [
@@ -53,6 +53,17 @@ export default function Dashboard() {
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
     return motivationalQuotes[dayOfYear % motivationalQuotes.length];
   }, []);
+
+  const handleDownloadAPK = () => {
+    // Lien vers l'APK hébergé
+    const apkUrl = '/FadulTask.apk'; // Vous devrez héberger l'APK
+    const link = document.createElement('a');
+    link.href = apkUrl;
+    link.download = 'FadulTask.apk';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-6">
@@ -120,6 +131,33 @@ export default function Dashboard() {
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
           {stats.completed} sur {stats.total} tâches accomplies
         </p>
+      </div>
+
+      {/* Bouton téléchargement APK */}
+      <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/20 rounded-xl">
+              <Smartphone className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">Version Mobile</h3>
+              <p className="text-sm opacity-90">Télécharge l'app hors-ligne</p>
+            </div>
+          </div>
+          <button
+            onClick={handleDownloadAPK}
+            className="flex items-center gap-2 bg-white text-green-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors shadow-lg"
+          >
+            <Download className="w-5 h-5" />
+            Télécharger APK
+          </button>
+        </div>
+        <div className="mt-4 text-sm opacity-75">
+          <p>• Fonctionne sans internet</p>
+          <p>• Installation directe sur Android</p>
+          <p>• Toutes les fonctionnalités incluses</p>
+        </div>
       </div>
     </div>
   );

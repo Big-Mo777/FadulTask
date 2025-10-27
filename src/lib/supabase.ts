@@ -3,7 +3,31 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Créer un client Supabase ou un mock
+const createSupabaseClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === '' || supabaseAnonKey === '') {
+    console.warn('Variables Supabase manquantes, mode hors-ligne activé');
+    return {
+      auth: {
+        getSession: () => Promise.resolve({ data: { session: null } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        signInWithPassword: () => Promise.reject(new Error('Mode hors-ligne')),
+        signUp: () => Promise.reject(new Error('Mode hors-ligne')),
+        signOut: () => Promise.resolve(),
+        signInWithOAuth: () => Promise.reject(new Error('Mode hors-ligne'))
+      },
+      from: () => ({
+        select: () => Promise.resolve({ data: [], error: null }),
+        insert: () => Promise.resolve({ data: null, error: null }),
+        update: () => Promise.resolve({ data: null, error: null }),
+        delete: () => Promise.resolve({ data: null, error: null })
+      })
+    };
+  }
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
+
+export const supabase = createSupabaseClient();
 
 export interface Task {
   id: string;

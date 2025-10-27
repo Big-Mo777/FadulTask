@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
-import { Moon, Sun, Bell, Info, Trash2, Download, User, LogOut, LogIn } from 'lucide-react';
+import { Moon, Sun, Bell, Info, Trash2, Download, User, LogOut, LogIn, Smartphone } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTasks } from '../contexts/TaskContext';
 import { useAuth } from '../contexts/AuthContext';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 import AuthModal from './AuthModal';
 import ConfirmModal from './ConfirmModal';
+import Toast from './Toast';
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { tasks } = useTasks();
   const { user, signOut, loading } = useAuth();
+  const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showClearDataModal, setShowClearDataModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const handleInstallApp = async () => {
+    const success = await installApp();
+    if (success) {
+      setToastMessage('Application installée avec succès ! 🎉');
+      setShowToast(true);
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -143,8 +156,58 @@ export default function Settings() {
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">Application</h3>
         </div>
+
+        {isInstalled ? (
+          <div className="p-4 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700">
+            <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="text-left">
+              <p className="font-medium text-blue-600 dark:text-blue-400">Application installée ✅</p>
+              <p className="text-sm text-blue-600/70 dark:text-blue-400/70">
+                FadulTask est disponible sur ton écran d'accueil
+              </p>
+            </div>
+          </div>
+        ) : isInstallable ? (
+          <button
+            onClick={handleInstallApp}
+            className="w-full p-4 flex items-center gap-3 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors border-b border-gray-100 dark:border-gray-700"
+          >
+            <Smartphone className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <div className="text-left">
+              <p className="font-medium text-green-600 dark:text-green-400">Installer l'application</p>
+              <p className="text-sm text-green-600/70 dark:text-green-400/70">
+                Utilise FadulTask hors-ligne sur ton téléphone
+              </p>
+            </div>
+          </button>
+        ) : (
+          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-start gap-3 mb-4">
+              <Smartphone className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5" />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white mb-2">Installer FadulTask</p>
+                <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-gray-200">📱 Sur iPhone/iPad :</p>
+                    <p>1. Appuie sur le bouton Partager (carré avec flèche)</p>
+                    <p>2. Sélectionne "Sur l'écran d'accueil"</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-gray-200">🤖 Sur Android :</p>
+                    <p>1. Appuie sur les 3 points (menu)</p>
+                    <p>2. Sélectionne "Installer l'application"</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-gray-200">💻 Sur ordinateur :</p>
+                    <p>Cherche l'icône d'installation dans la barre d'adresse</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <button
           onClick={requestNotificationPermission}
@@ -239,6 +302,13 @@ export default function Settings() {
         confirmText="Tout supprimer"
         cancelText="Annuler"
         type="danger"
+      />
+      
+      <Toast
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        type="success"
       />
     </div>
   );
