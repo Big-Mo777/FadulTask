@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, Filter, Search, Trash2, Edit2, GripVertical } from 'lucide-react';
 import { useTasks } from '../contexts/TaskContext';
 import TaskModal from './TaskModal';
+import ConfirmModal from './ConfirmModal';
 import { Task } from '../lib/supabase';
 import TaskIcon from './TaskIcon';
 
@@ -16,6 +17,7 @@ export default function TaskList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
   const filteredAndSortedTasks = useMemo(() => {
     let filtered = tasks;
@@ -97,6 +99,17 @@ export default function TaskList() {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingTask(null);
+  };
+
+  const handleDeleteClick = (task: Task) => {
+    setTaskToDelete(task);
+  };
+
+  const handleConfirmDelete = () => {
+    if (taskToDelete) {
+      deleteTask(taskToDelete.id);
+      setTaskToDelete(null);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -282,7 +295,7 @@ export default function TaskList() {
                         <Edit2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       </button>
                       <button
-                        onClick={() => deleteTask(task.id)}
+                        onClick={() => handleDeleteClick(task)}
                         className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -324,6 +337,17 @@ export default function TaskList() {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         task={editingTask}
+      />
+
+      <ConfirmModal
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer la tâche"
+        message={`Es-tu sûr de vouloir supprimer la tâche "${taskToDelete?.title}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
       />
     </div>
   );

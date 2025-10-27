@@ -4,12 +4,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useTasks } from '../contexts/TaskContext';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
+import ConfirmModal from './ConfirmModal';
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { tasks } = useTasks();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showClearDataModal, setShowClearDataModal] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -38,10 +40,8 @@ export default function Settings() {
   };
 
   const handleClearData = () => {
-    if (confirm('Es-tu sûr de vouloir supprimer toutes les données ? Cette action est irréversible.')) {
-      localStorage.clear();
-      window.location.reload();
-    }
+    localStorage.clear();
+    window.location.reload();
   };
 
   const requestNotificationPermission = async () => {
@@ -95,7 +95,11 @@ export default function Settings() {
           <h3 className="font-semibold text-gray-900 dark:text-white">Compte</h3>
         </div>
 
-        {user ? (
+        {loading ? (
+          <div className="p-4">
+            <p className="text-gray-600 dark:text-gray-400">Chargement...</p>
+          </div>
+        ) : user ? (
           <>
             <div className="p-4 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3">
@@ -175,7 +179,7 @@ export default function Settings() {
         </button>
 
         <button
-          onClick={handleClearData}
+          onClick={() => setShowClearDataModal(true)}
           className="w-full p-4 flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
         >
           <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
@@ -225,6 +229,17 @@ export default function Settings() {
       </div>
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      
+      <ConfirmModal
+        isOpen={showClearDataModal}
+        onClose={() => setShowClearDataModal(false)}
+        onConfirm={handleClearData}
+        title="Supprimer toutes les données"
+        message="Es-tu sûr de vouloir supprimer toutes les données ? Cette action supprimera définitivement toutes tes tâches, paramètres et données locales. Cette action est irréversible."
+        confirmText="Tout supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
     </div>
   );
 }
